@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import re
 import telepot
 
-t='2132333797:AAHH6w_57uJVRzq_Dz97Rdl92pFGwWIyNE4'
+t='2132333797:AAHH6w_57uJVRzq_Dz97Rdl92pFGwWIyNE'
 rid=867862142
 bot =telepot.Bot(t)
 
@@ -39,8 +39,8 @@ def loginAction():
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.5845.97 Safari/537.36",
     }
     data = {
-        "profile_id": "SBOVDBN55104048",
-        "password": "1357924680Sm@"
+        "profile_id": "",
+        "password": "@"
     }
 
     try:
