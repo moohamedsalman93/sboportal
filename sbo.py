@@ -5,7 +5,7 @@ import telepot
 
 t='2132333797:AAHH6w_57uJVRzq_Dz97Rdl92pFGwWIyNE4'
 rid=867862142
-bot =telepot.Bot(t)
+bot = telepot.Bot(t)
 
 session = requests.Session()
 
@@ -45,40 +45,108 @@ def loginAction():
 
     try:
         response = session.post(url + 'loginaction', headers=headers, data=data)
-        print(response.text)
+        # print(response.text)
         initial_cookie = {m.group(1): m.group(
             2) for m in cookie_pattern.finditer(response.headers['Set-Cookie'])}
+        print(initial_cookie)
     except Exception as e:
         bot.sendMessage(rid,'inLogin')
 
-def submit_video():
-    video=['qg','qw','rA','rQ','rg']
-    count=1
+def getcode(articleUrl):
+    code = ''
+    try:
+        with requests.Session() as temp_session:
+            response = temp_session.get(articleUrl)
+            
+            soup = BeautifulSoup(response.text, 'html.parser')
+            code_div = soup.find('div', id='coderesult')
+            if code_div:
+                code = code_div.text.strip()
+                print(code)
+            else:
+                raise Exception("Code not found.")
 
-    for i in video:
         headers = {
             "Cookie": "; ".join([f"{key}={value}" for key, value in initial_cookie.items()]),
             "X-Csrf-Token": csrf_token,
             "Origin": "https://www.sboportal.org.in",
-            "Referer": f"https://www.sboportal.org.in/videodetail/{i}==",
+            "Referer": "https://www.sboportal.org.in/articledetail/2",
             "Host": "www.sboportal.org.in",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.5845.97 Safari/537.36",
         }
+
         data = {
-            "videoid":f"{i}%3D%3D"
+            "videoid": "2",
+            "code": code
         }
 
-        try:
-            response = session.post(url + 'videosubmitform', headers=headers, data=data)
-            print(response.text)
-            bot.sendMessage(rid,f"v-{count} {response.text}")
-        except Exception as e:
-            bot.sendMessage(rid,"in video")
-            print("An error occurred:", e)
+        response = session.post(url + 'articledetail/2/articlesubmitform', headers=headers, data=data)
+        print(response.status_code)
 
-        count+=1
+    except Exception as e:
+        bot.sendMessage(rid, 'inSubmit')
+        raise e
+
+def articleInitial():
+    global initial_cookie  # Add this line
+    headers = {
+        "Cookie": "; ".join([f"{key}={value}" for key, value in initial_cookie.items()]),
+        # "X-Csrf-Token": csrf_token,
+        # "Origin": "https://www.sboportal.org.in",
+        "Referer": "https://www.sboportal.org.in/articlelistnew",
+        "Host": "www.sboportal.org.in",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.5845.97 Safari/537.36",
+    }
+
+    try:
+        response = session.get(url + 'articledetail/2', headers=headers)
+        # print(response.text)
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        a_tag = soup.find('a', class_='btn btn-primary d-none viewarticlelink')
+
+        if a_tag:
+            href = a_tag['href']
+            getcode(href)
+        else:
+            print("The <a> tag was not found.")
+        
+    except Exception as e:
+        bot.sendMessage(rid,'inartical')
+    
+
+# def submit_video():
+#     video=['qg','qw','rA','rQ','rg']
+#     count=1
+
+#     for i in video:
+#         headers = {
+#             "Cookie": "; ".join([f"{key}={value}" for key, value in initial_cookie.items()]),
+#             "X-Csrf-Token": csrf_token,
+#             "Origin": "https://www.sboportal.org.in",
+#             "Referer": f"https://www.sboportal.org.in/videodetail/{i}==",
+#             "Host": "www.sboportal.org.in",
+#             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.5845.97 Safari/537.36",
+#         }
+#         data = {
+#             "videoid":f"{i}%3D%3D"
+#         }
+
+#         try:
+#             response = session.post(url + 'videosubmitform', headers=headers, data=data)
+            # print(response.text)
+#             bot.sendMessage(rid,f"v-{count} {response.text}")
+#         except Exception as e:
+#             bot.sendMessage(rid,"in video")
+#             print("An error occurred:", e)
+
+#         count+=1
+
+
+
 
 loginGet()
 loginAction()
-submit_video()
+# submit_video()
+articleInitial()
 session.close()
