@@ -27,7 +27,6 @@ def loginGet():
     except Exception as e:
         bot.sendMessage(rid,'inLoginGet')
 
-
 def loginAction():
     global initial_cookie
     headers = {
@@ -48,11 +47,33 @@ def loginAction():
         # print(response.text)
         initial_cookie = {m.group(1): m.group(
             2) for m in cookie_pattern.finditer(response.headers['Set-Cookie'])}
-        print(initial_cookie)
+        print('login true')
     except Exception as e:
         bot.sendMessage(rid,'inLogin')
 
+def getBalance():
+    global initial_cookie  # Add this line
+    headers = {
+        "Cookie": "; ".join([f"{key}={value}" for key, value in initial_cookie.items()]),
+        "Referer": "https://www.sboportal.org.in/",
+        "Host": "www.sboportal.org.in",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.5845.97 Safari/537.36",
+    }
+
+    try:
+        response = session.get(url + 'dashboard', headers=headers)
+        # print(response.text)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        getTheValue=soup.find_all('div' ,class_='media-body')
+        taskBalance=getTheValue[1].find('h3').text
+        # bot.sendMessage(rid,'taskBalnce :' + taskBalance)
+        print(taskBalance)
+        
+    except Exception as e:
+        bot.sendMessage(rid,'ingetBalance')
+   
 def getcode(articleUrl):
+    print('entered get code')
     code = ''
     try:
         with requests.Session() as temp_session:
@@ -64,7 +85,7 @@ def getcode(articleUrl):
                 code = code_div.text.strip()
                 print(code)
             else:
-                raise Exception("Code not found.")
+                print('no code div 86')
 
         headers = {
             "Cookie": "; ".join([f"{key}={value}" for key, value in initial_cookie.items()]),
@@ -81,39 +102,42 @@ def getcode(articleUrl):
         }
 
         response = session.post(url + 'articledetail/2/articlesubmitform', headers=headers, data=data)
-        print(response.status_code)
+        print(response.text)
+        getBalance()
 
     except Exception as e:
         bot.sendMessage(rid, 'inSubmit')
-        raise e
 
 def articleInitial():
+    getBalance()
+    print('entered article')
     global initial_cookie  # Add this line
     headers = {
         "Cookie": "; ".join([f"{key}={value}" for key, value in initial_cookie.items()]),
-        # "X-Csrf-Token": csrf_token,
-        # "Origin": "https://www.sboportal.org.in",
+        "X-Csrf-Token": csrf_token,
+        "Origin": "https://www.sboportal.org.in",
         "Referer": "https://www.sboportal.org.in/articlelistnew",
         "Host": "www.sboportal.org.in",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.5845.97 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36",
     }
 
     try:
         response = session.get(url + 'articledetail/2', headers=headers)
-        # print(response.text)
         soup = BeautifulSoup(response.text, 'html.parser')
 
         a_tag = soup.find('a', class_='btn btn-primary d-none viewarticlelink')
 
         if a_tag:
             href = a_tag['href']
+            print('link founded')
             getcode(href)
         else:
             print("The <a> tag was not found.")
         
     except Exception as e:
+        print('error in article')
         bot.sendMessage(rid,'inartical')
-    
+  
 
 # def submit_video():
 #     video=['qg','qw','rA','rQ','rg']
